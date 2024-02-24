@@ -4,7 +4,7 @@ const { OpenAI } = require("openai");
 const BOT_TOKEN = "6507133572:AAFNaeTYJ8lglhXxo70oPfCMNXMPujIBNFM";
 const bot = new Telegraf(BOT_TOKEN);
 const openai = new OpenAI({
-  apiKey: "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", // This is the default and can be omitted
+  apiKey: "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", // This is the default and can be omitted
 });
 const { createClient } = require("@supabase/supabase-js");
 
