@@ -1,18 +1,17 @@
 const { Telegraf, Input } = require("telegraf");
 const { OpenAI } = require("openai");
-
-const BOT_TOKEN = "6507133572:AAFNaeTYJ8lglhXxo70oPfCMNXMPujIBNFM";
+const dotenv = require("dotenv");
+dotenv.config({ path: "./.env" });
+const BOT_TOKEN = process.env.BOT_TOKEN;
 const bot = new Telegraf(BOT_TOKEN);
 const openai = new OpenAI({
-  apiKey: "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", // This is the default and can be omitted
+  apiKey: process.env.OPENAI_APIKEY, // This is the default and can be omitted
 });
 const { createClient } = require("@supabase/supabase-js");
 
 const supabaseUrl = "https://eugkengntgifflrroxwa.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1Z2tlbmdudGdpZmZscnJveHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDg2ODc4ODAsImV4cCI6MjAyNDI2Mzg4MH0.n68N0EELH7byazFG8lYb5EPTJCurfuDl1ZEpUyyZYsc";
+const supabaseKey = process.env.supabaseKey;
 const supabase = createClient(supabaseUrl, supabaseKey);
-
 
 async function chatgpt(msg, chat_id, ctx) {
   // trd_id == thread_id
@@ -23,15 +22,16 @@ async function chatgpt(msg, chat_id, ctx) {
     .from("User")
     .select()
     .eq("chat_id", chat_id);
-  console.log(chat_id);
-  console.log(userData);
-  console.log(userDataError);
   if (userData.length == 0) {
     const thread = await openai.beta.threads.create();
     const thread_id = thread.id;
+    const name = ctx.chat.first_name;
+    const username = ctx.chat.username;
     const { data, error } = await supabase.from("User").insert([
       {
+        name,
         chat_id,
+        username,
         thread_id,
       },
     ]);
@@ -59,12 +59,12 @@ async function chatgpt(msg, chat_id, ctx) {
     bot.telegram.sendChatAction(chat_id, "typing");
     const runUpdate = await openai.beta.threads.runs.retrieve(trd_id, run.id);
     const status = runUpdate.status;
-    console.log("status", status);
+    // console.log("status", status);
 
     if (status === "completed") {
       const messages = await openai.beta.threads.messages.list(trd_id);
       const reply = messages.data[0].content[0].text.value;
-      console.log("reply:", reply);
+      // console.log("reply:", reply);
 
       // send to telegram
       if (reply != null) {
@@ -78,10 +78,11 @@ async function chatgpt(msg, chat_id, ctx) {
       return reply;
     } else if (status === "queued" || status === "in_progress") {
       //Run is not yet completed, waiting for 1 second...
+      bot.telegram.sendChatAction(chat_id, "typing");
       setTimeout(waitForCompletion, 100); // Check again after 1 second
     }
   };
-  console.log("puu!!", await waitForCompletion());
+  await waitForCompletion();
 }
 
 //For group chat
@@ -93,15 +94,7 @@ bot.use(async (ctx, next) => {
   ) {
     ctx.sendChatAction("typing");
     const chat_id = ctx.chat.id;
-    const responds = await chatgpt(ctx.message.text, chat_id, ctx);
-    console.log("responds", responds);
-    // if (responds != null) {
-    //   ctx.reply(responds);
-    // } else {
-    //   const text =
-    //     "<blockquote><i>An error occurred. If this issue persists please contact us through our help center at grokontg@gmail.com</i></blockquote>";
-    //   ctx.replyWithHTML(text);
-    // }
+    await chatgpt(ctx.message.text, chat_id, ctx);
   }
 
   // Continue with the next middleware
