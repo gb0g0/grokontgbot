@@ -78,7 +78,6 @@ async function chatgpt(msg, chat_id, ctx) {
       return reply;
     } else if (status === "queued" || status === "in_progress") {
       //Run is not yet completed, waiting for 1 second...
-      bot.telegram.sendChatAction(chat_id, "typing");
       setTimeout(waitForCompletion, 100); // Check again after 1 second
     }
   };
