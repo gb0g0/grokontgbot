@@ -118,32 +118,29 @@ bot.command("start", async (ctx) => {
         username,
       },
     ]);
-    mode = "fun_mode"
+    mode = "fun_mode";
     if (error) return null;
   } else {
     mode = userData[0].mode;
   }
 
-
   const msg = `Hi ${ctx.chat.first_name}, i'm Grok your Conversational AI here on Telegram.\n\nElon gave access to Grok for only premium user on X but we stole the algorithm and brought it to Telegram for you😉\n\nGrok Something`;
-  const menu = ctx.replyWithHTML(msg, 
-  //   {
-  //   reply_markup: {
-  //     inline_keyboard: [
-  //       [
-  //         {
-  //           text: `😎Fun Mode ${mode == "fun_mode" ? "✅" : ""}`,
-  //           callback_data: "fun_mode",
-  //         },
-  //         {
-  //           text: `😐Regular Mode ${mode == "regular_mode" ? "✅" : ""}`,
-  //           callback_data: "regular_mode",
-  //         },
-  //       ],
-  //     ],
-  //   },
-  // }
-  );
+  const menu = ctx.replyWithHTML(msg, {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: `😎Fun Mode ${mode == "fun_mode" ? "✅" : ""}`,
+            callback_data: "fun_mode",
+          },
+          {
+            text: `😐Regular Mode ${mode == "regular_mode" ? "✅" : ""}`,
+            callback_data: "regular_mode",
+          },
+        ],
+      ],
+    },
+  });
 
   // ctx.editMessageReplyMarkup()
 });
