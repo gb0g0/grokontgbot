@@ -43,6 +43,8 @@ async function chatgpt(msg, chat_id, ctx) {
   const username = ctx.chat.username;
 
   if (userData.length == 0) {
+    const thread = await openai.beta.threads.create();
+    const thread_id = thread.id;
     const { data, error } = await supabase.from("User").insert([
       {
         name,
@@ -50,8 +52,9 @@ async function chatgpt(msg, chat_id, ctx) {
         username,
       },
     ]);
-    mode = "fun_mode";
     if (error) return null;
+    trd_id = thread_id;
+    mode = data[0].mode;
   }
 
   if (trd_id == "") return null;
