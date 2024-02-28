@@ -23,21 +23,6 @@ async function chatgpt(msg, chat_id, ctx) {
     .from("User")
     .select()
     .eq("chat_id", chat_id);
-  if (userData[0].thread_id == null) {
-    const thread = await openai.beta.threads.create();
-    const thread_id = thread.id;
-    const { data, error } = await supabase
-      .from("User")
-      .update({ thread_id })
-      .eq("chat_id", ctx.chat.id)
-      .select();
-    if (error) return null;
-    trd_id = thread_id;
-    mode = data[0].mode;
-  } else {
-    trd_id = userData[0].thread_id;
-    mode = userData[0].mode;
-  }
 
   const name = ctx.chat.first_name;
   const username = ctx.chat.username;
@@ -55,6 +40,20 @@ async function chatgpt(msg, chat_id, ctx) {
     if (error) return null;
     trd_id = thread_id;
     mode = data[0].mode;
+  } else if (userData[0].thread_id == null) {
+    const thread = await openai.beta.threads.create();
+    const thread_id = thread.id;
+    const { data, error } = await supabase
+      .from("User")
+      .update({ thread_id })
+      .eq("chat_id", ctx.chat.id)
+      .select();
+    if (error) return null;
+    trd_id = thread_id;
+    mode = data[0].mode;
+  } else {
+    trd_id = userData[0].thread_id;
+    mode = userData[0].mode;
   }
 
   if (trd_id == "") return null;
