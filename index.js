@@ -39,6 +39,22 @@ async function chatgpt(msg, chat_id, ctx) {
     mode = userData[0].mode;
   }
 
+  const chat_id = ctx.chat.id;
+  const name = ctx.chat.first_name;
+  const username = ctx.chat.username;
+
+  if (userData.length == 0) {
+    const { data, error } = await supabase.from("User").insert([
+      {
+        name,
+        chat_id,
+        username,
+      },
+    ]);
+    mode = "fun_mode";
+    if (error) return null;
+  }
+
   if (trd_id == "") return null;
 
   //create/send new message
