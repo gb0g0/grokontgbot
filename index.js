@@ -42,13 +42,12 @@ async function chatgpt(msg, chat_id, ctx) {
   if (trd_id == "") return null;
 
   //create/send new message
-  // bot.telegram.sendChatAction(chat_id, "typing");
+  bot.telegram.sendChatAction(chat_id, "typing");
   await openai.beta.threads.messages.create(trd_id, {
     role: "user",
     content: msg,
   });
 
-  // bot.telegram.sendChatAction(chat_id, "typing");
   let asst_id;
   if (mode == "regular_mode") {
     asst_id = "asst_D0fV4p8rw4Cfg4opslsnDlnG";
@@ -60,7 +59,7 @@ async function chatgpt(msg, chat_id, ctx) {
   });
 
   const waitForCompletion = async () => {
-    // bot.telegram.sendChatAction(chat_id, "typing");
+    bot.telegram.sendChatAction(chat_id, "typing");
     const runUpdate = await openai.beta.threads.runs.retrieve(trd_id, run.id);
     const status = runUpdate.status;
 
@@ -93,7 +92,7 @@ bot.use(async (ctx, next) => {
     ctx.message.chat.type == "private" &&
     ctx.message.text != "/start"
   ) {
-    // ctx.sendChatAction("typing");
+    ctx.sendChatAction("typing");
     const chat_id = ctx.chat.id;
     await chatgpt(ctx.message.text, chat_id, ctx);
   }
