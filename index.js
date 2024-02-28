@@ -50,9 +50,9 @@ async function chatgpt(msg, chat_id, ctx) {
 
   let asst_id;
   if (mode == "regular_mode") {
-    asst_id = "asst_D0fV4p8rw4Cfg4opslsnDlnG";
+    asst_id = "asst_C2wSEjnHNz01Xl25Bw7DYfUN";
   } else if (mode == "fun_mode") {
-    asst_id = "asst_8Hr2pKGwbyXiFMSn1L8sCLtP";
+    asst_id = "asst_C2wSEjnHNz01Xl25Bw7DYfUN";
   }
   const run = await openai.beta.threads.runs.create(trd_id, {
     assistant_id: asst_id,
