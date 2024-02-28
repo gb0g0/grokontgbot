@@ -16,29 +16,27 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 async function chatgpt(msg, chat_id, ctx) {
   // trd_id == thread_id
   let trd_id = "";
+  let mode = "";
 
   //check supabase if it's a new user before creating a new thread
   const { data: userData, error: userDataError } = await supabase
     .from("User")
     .select()
     .eq("chat_id", chat_id);
-  if (userData.length == 0) {
+  if (userData[0].thread_id == null) {
     const thread = await openai.beta.threads.create();
     const thread_id = thread.id;
-    const name = ctx.chat.first_name;
-    const username = ctx.chat.username;
-    const { data, error } = await supabase.from("User").insert([
-      {
-        name,
-        chat_id,
-        username,
-        thread_id,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("User")
+      .update({ thread_id })
+      .eq("chat_id", ctx.chat.id)
+      .select();
     if (error) return null;
     trd_id = thread_id;
+    mode = data[0].mode;
   } else {
     trd_id = userData[0].thread_id;
+    mode = userData[0].mode;
   }
 
   if (trd_id == "") return null;
@@ -51,20 +49,24 @@ async function chatgpt(msg, chat_id, ctx) {
   });
 
   bot.telegram.sendChatAction(chat_id, "typing");
+  let asst_id;
+  if (mode == "regular_mode") {
+    asst_id = "asst_D0fV4p8rw4Cfg4opslsnDlnG";
+  } else if (mode == "fun_mode") {
+    asst_id = "asst_8Hr2pKGwbyXiFMSn1L8sCLtP";
+  }
   const run = await openai.beta.threads.runs.create(trd_id, {
-    assistant_id: "asst_8Hr2pKGwbyXiFMSn1L8sCLtP",
+    assistant_id: asst_id,
   });
 
   const waitForCompletion = async () => {
     bot.telegram.sendChatAction(chat_id, "typing");
     const runUpdate = await openai.beta.threads.runs.retrieve(trd_id, run.id);
     const status = runUpdate.status;
-    // console.log("status", status);
 
     if (status === "completed") {
       const messages = await openai.beta.threads.messages.list(trd_id);
       const reply = messages.data[0].content[0].text.value;
-      // console.log("reply:", reply);
 
       // send to telegram
       if (reply != null) {
@@ -101,9 +103,79 @@ bot.use(async (ctx, next) => {
 });
 
 bot.command("start", async (ctx) => {
-  const msg = `Hi ${ctx.chat.first_name}`;
-  ctx.replyWithHTML(msg);
+  let mode;
+  const chat_id = ctx.chat.id;
+  const name = ctx.chat.first_name;
+  const username = ctx.chat.username;
+  const { data: userData, error: userDataError } = await supabase
+    .from("User")
+    .select()
+    .eq("chat_id", chat_id);
+  if (userData.length == 0) {
+    const { data, error } = await supabase.from("User").insert([
+      {
+        name,
+        chat_id,
+        username,
+      },
+    ]);
+    mode = "fun_mode"
+    if (error) return null;
+  } else {
+    mode = userData[0].mode;
+  }
+
+
+  const msg = `Hi ${ctx.chat.first_name}, i'm Grok your Conversational AI here on Telegram.\n\nElon gave access to Grok for only premium user on X but we stole the algorithm and brought it to Telegram for you😉\n\nGrok Something`;
+  const menu = ctx.replyWithHTML(msg, {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: `😎Fun Mode ${mode == "fun_mode" ? "✅" : ""}`,
+            callback_data: "fun_mode",
+          },
+          {
+            text: `😐Regular Mode ${mode == "regular_mode" ? "✅" : ""}`,
+            callback_data: "regular_mode",
+          },
+        ],
+      ],
+    },
+  });
+
+  // ctx.editMessageReplyMarkup()
 });
 
+bot.on("callback_query", async (ctx) => {
+  if (ctx.callbackQuery == undefined) return;
+  const mode = ctx.callbackQuery.data;
+
+  const menuid = ctx.callbackQuery.message.message_id;
+
+  await supabase
+    .from("User")
+    .update({ mode })
+    .eq("chat_id", ctx.chat.id)
+    .select();
+
+  bot.telegram.editMessageReplyMarkup(ctx.chat.id, menuid, menuid, {
+    inline_keyboard: [
+      [
+        {
+          text: `😎Fun Mode ${mode == "fun_mode" ? "✅" : ""}`,
+          callback_data: "fun_mode",
+        },
+        {
+          text: `😐Regular Mode ${mode == "regular_mode" ? "✅" : ""}`,
+          callback_data: "regular_mode",
+        },
+      ],
+    ],
+  });
+});
 // Start the bot
 bot.launch();
+
+//
+//
