@@ -39,7 +39,6 @@ async function chatgpt(msg, chat_id, ctx) {
     mode = userData[0].mode;
   }
 
-  const chat_id = ctx.chat.id;
   const name = ctx.chat.first_name;
   const username = ctx.chat.username;
 
