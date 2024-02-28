@@ -42,7 +42,7 @@ async function chatgpt(msg, chat_id, ctx) {
   if (trd_id == "") return null;
 
   //create/send new message
-  bot.telegram.sendChatAction(chat_id, "typing");
+  // bot.telegram.sendChatAction(chat_id, "typing");
   await openai.beta.threads.messages.create(trd_id, {
     role: "user",
     content: msg,
@@ -157,20 +157,22 @@ bot.on("callback_query", async (ctx) => {
     .eq("chat_id", ctx.chat.id)
     .select();
 
-  bot.telegram.editMessageReplyMarkup(ctx.chat.id, menuid, menuid, {
-    inline_keyboard: [
-      [
-        {
-          text: `😎Fun Mode ${mode == "fun_mode" ? "✅" : ""}`,
-          callback_data: "fun_mode",
-        },
-        {
-          text: `😐Regular Mode ${mode == "regular_mode" ? "✅" : ""}`,
-          callback_data: "regular_mode",
-        },
+  bot.telegram
+    .editMessageReplyMarkup(ctx.chat.id, menuid, menuid, {
+      inline_keyboard: [
+        [
+          {
+            text: `😎Fun Mode ${mode == "fun_mode" ? "✅" : ""}`,
+            callback_data: "fun_mode",
+          },
+          {
+            text: `😐Regular Mode ${mode == "regular_mode" ? "✅" : ""}`,
+            callback_data: "regular_mode",
+          },
+        ],
       ],
-    ],
-  });
+    })
+    .catch((error) => console.error("Error in editmessage:", error));
 });
 // Start the bot
 bot.launch();
