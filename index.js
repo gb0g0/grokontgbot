@@ -52,7 +52,7 @@ async function chatgpt(msg, chat_id, ctx) {
   if (mode == "regular_mode") {
     asst_id = "asst_C2wSEjnHNz01Xl25Bw7DYfUN";
   } else if (mode == "fun_mode") {
-    asst_id = "asst_C2wSEjnHNz01Xl25Bw7DYfUN";
+    asst_id = "asst_9iWJ5TWqJbvyTeFDhJsj5vgS";
   }
   const run = await openai.beta.threads.runs.create(trd_id, {
     assistant_id: asst_id,
