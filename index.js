@@ -157,7 +157,7 @@ bot.command("weather", async (ctx) => {
     // ctx.reply(message);
     ctx.sendChatAction("find_location");
     ctx.replyWithHTML(
-      `Grok The Weather Forecaster☁🌡\n\n<pre>City:           ${city}\nWeather:        ${weather}\nTemperature:    ${temperature.toFixed(
+      `<b>Grok The Weather Forecaster ☁</b>\n\nWeather Info for ${city}\n<pre>City:           ${city}\nWeather:        ${weather}\nTemperature:    ${temperature.toFixed(
         2
       )}°C\nHumidity        ${humidity}%\nPressure:       ${pressure}hPa\nWindSpeed:      ${windSpeed}m/s</pre>`
     );
