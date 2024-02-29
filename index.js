@@ -1,5 +1,7 @@
 const { Telegraf, Input } = require("telegraf");
 const { OpenAI } = require("openai");
+const axios = require("axios");
+
 const dotenv = require("dotenv");
 dotenv.config({ path: "./config.env" });
 const BOT_TOKEN = process.env.BOT_TOKEN;
@@ -18,7 +20,7 @@ async function chatgpt(msg, chat_id, ctx) {
   let trd_id = "";
   let mode = "";
 
-  //check supabase if it's a new user before creating a new thread
+  //check supabase if it's a new user before creating a new thq`7890-=read
   const { data: userData, error: userDataError } = await supabase
     .from("User")
     .select()
@@ -108,15 +110,61 @@ bot.use(async (ctx, next) => {
   if (
     ctx.message &&
     ctx.message.chat.type == "private" &&
-    ctx.message.text != "/start"
+    ctx.message.text != "/start" &&
+    !ctx.message.text.includes("weather")
   ) {
     ctx.sendChatAction("typing");
+    console.log("hey");
     const chat_id = ctx.chat.id;
     await chatgpt(ctx.message.text, chat_id, ctx);
   }
 
   // Continue with the next middleware
   next();
+});
+
+bot.command("weather", async (ctx) => {
+  // ctx.reply(ctx.message.text);
+
+  const chatId = ctx.chat.id;
+  const msg = ctx.message.text;
+  const location = msg.replace(/^\/weather\s+/, "");
+
+  if (location == "") {
+    ctx.reply("Pls provide a city");
+    return null;
+  }
+
+  console.log(location);
+  ctx.sendChatAction("find_location");
+
+  try {
+    const response = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=c7e48fce0c58e339f68616c06d62c787
+      `
+    );
+    const data = response.data;
+    const weather = data.weather[0].description;
+    const temperature = data.main.temp - 273.15;
+    const city = data.name;
+    const humidity = data.main.humidity;
+    const pressure = data.main.pressure;
+    const windSpeed = data.wind.speed;
+    const message = `The weather in ${city} is ${weather} with a temperature of ${temperature.toFixed(
+      2
+    )}°C. The humidity is ${humidity}%, the pressure is ${pressure}hPa, and the wind speed is ${windSpeed}m/s.`;
+
+    // ctx.reply(message);
+    ctx.sendChatAction("find_location");
+    ctx.replyWithHTML(
+      `Grok The Weather Forecaster☁🌡\n\n<pre>City:           ${city}\nWeather:        ${weather}\nTemperature:    ${temperature.toFixed(
+        2
+      )}°C\nHumidity        ${humidity}%\nPressure:       ${pressure}hPa\nWindSpeed:      ${windSpeed}m/s</pre>`
+    );
+  } catch (error) {
+    console.log(error);
+    ctx.reply("City doesn't exist.🙃");
+  }
 });
 
 bot.command("start", async (ctx) => {
